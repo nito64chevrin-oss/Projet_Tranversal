@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ma Collection — Catalogue</title>
+<style>
+  :root {
+    --blue-900: #0b2f5e;
+    --blue-700: #1d4ed8;
+    --blue-500: #3b82f6;
+    --blue-100: #e7f0fe;
+    --blue-50: #f4f8ff;
+    --white: #ffffff;
+    --yellow: #f5c518;
+    --yellow-dark: #d4a800;
+    --text: #14213d;
+    --text-muted: #5b6b85;
+    --border: #dbe6f7;
+    --radius: 12px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: var(--blue-50);
+    color: var(--text);
+  }
+
+  /* ---------- Header ---------- */
+
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 40px;
+  }
+
+  .logo {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--blue-900);
+    letter-spacing: 0.5px;
+  }
+
+  .logo span {
+    color: var(--blue-700);
+  }
+
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .btn-yellow {
+    background: var(--yellow);
+    color: var(--blue-900);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn-yellow:hover {
+    background: var(--yellow-dark);
+  }
+
+  .btn-account {
+    background: var(--white);
+    color: var(--blue-900);
+    border: 2px solid var(--yellow);
+    padding: 8px 18px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  /* ---------- Config API (à ajuster si besoin) ---------- */
+
+  .api-banner {
+    max-width: 1200px;
+    margin: 16px auto 0;
+    padding: 0 40px;
+  }
+
+  .api-banner-inner {
+    background: var(--blue-100);
+    color: var(--blue-900);
+    font-size: 13px;
+    padding: 10px 16px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .api-banner-inner input {
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 10px;
+    font-size: 13px;
+    min-width: 220px;
+  }
+
+  /* ---------- Filtres ---------- */
+
+  .filters {
+    max-width: 1200px;
+    margin: 20px auto 0;
+    padding: 0 40px;
+  }
+
+  .filters-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: flex-end;
+    box-shadow: 0 2px 10px rgba(11, 47, 94, 0.04);
+  }
+
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .field label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+  }
+
+  .field input,
+  .field select {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--blue-50);
+    min-width: 180px;
+  }
+
+  .field input:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--blue-500);
+    background: var(--white);
+  }
+
+  .search-field {
+    flex: 1;
+    min-width: 240px;
+  }
+
+  .search-field input {
+    width: 100%;
+  }
+
+  .btn-filter {
+    background: var(--blue-700);
+    color: var(--white);
+    border: none;
+    padding: 11px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    height: 42px;
+  }
+
+  .btn-filter:hover {
+    background: var(--blue-900);
+  }
+
+  /* ---------- Grille de livres ---------- */
+
+  main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 40px 60px;
+  }
+
+  .section-title {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--blue-900);
+    margin-bottom: 18px;
+  }
+
+  .book-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 20px;
+  }
+
+  .grid-message {
+    grid-column: 1 / -1;
+    text-align: center;
+    color: var(--text-muted);
+    padding: 50px 0;
+    font-size: 14px;
+  }
+
+  .book-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 8px rgba(11, 47, 94, 0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .book-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(11, 47, 94, 0.12);
+  }
+
+  .book-cover-img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+    background: var(--blue-100);
+  }
+
+  .book-info {
+    padding: 14px 16px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .book-tag {
+    align-self: flex-start;
+    background: var(--blue-100);
+    color: var(--blue-700);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 3px 9px;
+    border-radius: 999px;
+  }
+
+  .book-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.3;
+  }
+
+  .book-author {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 1100px) {
+    .book-grid { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 700px) {
+    .book-grid { grid-template-columns: repeat(2, 1fr); }
+    header { padding: 16px 20px; }
+    .filters, main, .api-banner { padding-left: 20px; padding-right: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Ma <span>Collection</span></div>
+  <div class="header-actions">
+    <button class="btn-account" type="button">Mon compte</button>
+    <button class="btn-yellow" type="button">Connexion</button>
+  </div>
+</header>
+
+<div class="api-banner">
+  <div class="api-banner-inner">
+    <span>URL de l'API :</span>
+    <input type="text" id="apiBase" value="http://localhost:8000">
+    <button type="button" class="btn-filter" id="btnReload" style="padding:6px 14px;">Recharger</button>
+  </div>
+</div>
+
+<div class="filters">
+  <form class="filters-card" id="filterForm">
+    <div class="field search-field">
+      <label for="recherche">Recherche</label>
+      <input type="text" id="recherche" name="recherche" placeholder="Rechercher un titre...">
+    </div>
+
+    <div class="field">
+      <label for="genre">Genre</label>
+      <select id="genre" name="genre">
+        <option value="">Tous les genres</option>
+        <option value="Littérature">Littérature</option>
+        <option value="BD">BD</option>
+        <option value="Manga">Manga</option>
+        <option value="Guide">Guide</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="auteur">Auteur</label>
+      <select id="auteur" name="auteur">
+        <option value="">Tous les auteurs</option>
+        <option value="Hirohiko Araki">Hirohiko Araki</option>
+        <option value="Victor Hugo">Victor Hugo</option>
+        <option value="René Goscinny & Albert Uderzo">René Goscinny &amp; Albert Uderzo</option>
+        <option value="Eiichiro Oda">Eiichiro Oda</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn-filter">Filtrer</button>
+  </form>
+</div>
+
+<main>
+  <div class="section-title">Catalogue</div>
+  <div class="book-grid" id="bookGrid">
+    <p class="grid-message">Chargement du catalogue...</p>
+  </div>
+</main>
+
+<script>
+  // Pas de stockage navigateur : tout reste en mémoire de page.
+  const grid = document.getElementById("bookGrid");
+  const form = document.getElementById("filterForm");
+  const apiBaseInput = document.getElementById("apiBase");
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function bookCardHTML(book) {
+    return `
+      <div class="book-card">
+        <img class="book-cover-img" src="${escapeHtml(book.image_url)}" alt="${escapeHtml(book.titre)}">
+        <div class="book-info">
+          <span class="book-tag">${escapeHtml(book.categorie)}</span>
+          <div class="book-title">${escapeHtml(book.titre)}</div>
+          <div class="book-author">${escapeHtml(book.auteur)}</div>
+        </div>
+      </div>
+    `;
+  }
+
+  async function loadBooks() {
+    const base = apiBaseInput.value.replace(/\/$/, "");
+    const q = document.getElementById("recherche").value.trim();
+    const categorie = document.getElementById("genre").value;
+    const auteur = document.getElementById("auteur").value;
+
+    const params = new URLSearchParams();
+    if (q) params.set("q", q);
+    if (categorie) params.set("categorie", categorie);
+    params.set("limit", "50");
+
+    grid.innerHTML = '<p class="grid-message">Chargement du catalogue...</p>';
+
+    try {
+      const res = await fetch(`${base}/items?${params.toString()}`);
+      if (!res.ok) throw new Error("Statut HTTP " + res.status);
+      const data = await res.json();
+
+      let books = data.results || [];
+
+      // Filtre auteur appliqué côté page : /items ne le gère pas côté API
+      if (auteur) {
+        books = books.filter((b) => b.auteur === auteur);
+      }
+
+      if (books.length === 0) {
+        grid.innerHTML = '<p class="grid-message">Aucun livre trouvé.</p>';
+        return;
+      }
+
+      grid.innerHTML = books.map(bookCardHTML).join("");
+    } catch (err) {
+      grid.innerHTML =
+        '<p class="grid-message">Impossible de joindre l\'API (' +
+        escapeHtml(err.message) +
+        "). Vérifie qu'uvicorn tourne, que l'URL ci-dessus est correcte, et que CORS autorise cette page.</p>";
+    }
+  }
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    loadBooks();
+  });
+
+  document.getElementById("btnReload").addEventListener("click", loadBooks);
+
+  loadBooks();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,118 @@
+import asyncio
+
+from sqlmodel import select
+
+from db.database import async_session_maker, init_db
+from models.model import Book
+
+
+BOOKS = [
+    # --- Littérature ---
+    {"titre": "Le Petit Prince", "categorie": "Littérature", "description": "Un aviateur en panne dans le désert rencontre un jeune prince venu d'une autre planète.", "image_url": "https://picsum.photos/seed/petit-prince/300/450", "annee": 1943, "auteur": "Antoine de Saint-Exupéry", "nombre_pages": 96},
+    {"titre": "L'Étranger", "categorie": "Littérature", "description": "Meursault, indifférent au monde, commet un meurtre sous le soleil d'Alger.", "image_url": "https://picsum.photos/seed/etranger/300/450", "annee": 1942, "auteur": "Albert Camus", "nombre_pages": 186},
+    {"titre": "Les Misérables", "categorie": "Littérature", "description": "Le destin de Jean Valjean, ancien bagnard, dans la France du XIXe siècle.", "image_url": "https://picsum.photos/seed/miserables/300/450", "annee": 1862, "auteur": "Victor Hugo", "nombre_pages": 1900},
+    {"titre": "Madame Bovary", "categorie": "Littérature", "description": "Emma Bovary rêve d'une vie passionnée que son mariage terne ne lui offre pas.", "image_url": "https://picsum.photos/seed/bovary/300/450", "annee": 1857, "auteur": "Gustave Flaubert", "nombre_pages": 464},
+    {"titre": "Le Comte de Monte-Cristo", "categorie": "Littérature", "description": "Edmond Dantès, trahi et emprisonné, orchestre une vengeance méticuleuse.", "image_url": "https://picsum.photos/seed/monte-cristo/300/450", "annee": 1844, "auteur": "Alexandre Dumas", "nombre_pages": 1200},
+    {"titre": "Germinal", "categorie": "Littérature", "description": "La révolte des mineurs du Nord de la France face à la misère ouvrière.", "image_url": "https://picsum.photos/seed/germinal/300/450", "annee": 1885, "auteur": "Émile Zola", "nombre_pages": 592},
+    {"titre": "Voyage au bout de la nuit", "categorie": "Littérature", "description": "Bardamu traverse la guerre, la colonie et la misère urbaine avec un cynisme féroce.", "image_url": "https://picsum.photos/seed/voyage-nuit/300/450", "annee": 1932, "auteur": "Louis-Ferdinand Céline", "nombre_pages": 505},
+    {"titre": "La Peste", "categorie": "Littérature", "description": "Une épidémie frappe la ville d'Oran, révélant l'absurde et la solidarité humaine.", "image_url": "https://picsum.photos/seed/la-peste/300/450", "annee": 1947, "auteur": "Albert Camus", "nombre_pages": 279},
+    {"titre": "Bel-Ami", "categorie": "Littérature", "description": "L'ascension sociale sans scrupules de Georges Duroy dans le Paris de la presse.", "image_url": "https://picsum.photos/seed/bel-ami/300/450", "annee": 1885, "auteur": "Guy de Maupassant", "nombre_pages": 400},
+    {"titre": "Notre-Dame de Paris", "categorie": "Littérature", "description": "Quasimodo, Esmeralda et la cathédrale au cœur d'un drame médiéval.", "image_url": "https://picsum.photos/seed/notre-dame/300/450", "annee": 1831, "auteur": "Victor Hugo", "nombre_pages": 940},
+    {"titre": "Le Rouge et le Noir", "categorie": "Littérature", "description": "Julien Sorel gravit les échelons sociaux dans la France de la Restauration.", "image_url": "https://picsum.photos/seed/rouge-noir/300/450", "annee": 1830, "auteur": "Stendhal", "nombre_pages": 576},
+    {"titre": "Vingt mille lieues sous les mers", "categorie": "Littérature", "description": "À bord du Nautilus, le capitaine Nemo explore les profondeurs océaniques.", "image_url": "https://picsum.photos/seed/vingt-mille-lieues/300/450", "annee": 1870, "auteur": "Jules Verne", "nombre_pages": 480},
+    {"titre": "Candide", "categorie": "Littérature", "description": "Candide traverse le monde et ses horreurs à la recherche de l'optimisme.", "image_url": "https://picsum.photos/seed/candide/300/450", "annee": 1759, "auteur": "Voltaire", "nombre_pages": 144},
+    {"titre": "Au revoir là-haut", "categorie": "Littérature", "description": "Deux rescapés de la Grande Guerre montent une arnaque aux monuments aux morts.", "image_url": "https://picsum.photos/seed/au-revoir-la-haut/300/450", "annee": 2013, "auteur": "Pierre Lemaitre", "nombre_pages": 576},
+    {"titre": "L'Alchimiste", "categorie": "Littérature", "description": "Un jeune berger andalou part en quête d'un trésor et de sa légende personnelle.", "image_url": "https://picsum.photos/seed/alchimiste/300/450", "annee": 1988, "auteur": "Paulo Coelho", "nombre_pages": 192},
+    {"titre": "1984", "categorie": "Littérature", "description": "Winston Smith survit sous la surveillance totale de Big Brother.", "image_url": "https://picsum.photos/seed/1984/300/450", "annee": 1949, "auteur": "George Orwell", "nombre_pages": 328},
+    {"titre": "Fahrenheit 451", "categorie": "Littérature", "description": "Dans un futur où les livres sont brûlés, un pompier commence à douter.", "image_url": "https://picsum.photos/seed/fahrenheit-451/300/450", "annee": 1953, "auteur": "Ray Bradbury", "nombre_pages": 256},
+    {"titre": "Le Meilleur des mondes", "categorie": "Littérature", "description": "Une société future où les individus sont conditionnés dès leur conception.", "image_url": "https://picsum.photos/seed/meilleur-des-mondes/300/450", "annee": 1932, "auteur": "Aldous Huxley", "nombre_pages": 320},
+    {"titre": "Crime et Châtiment", "categorie": "Littérature", "description": "Raskolnikov, étudiant pauvre, commet un meurtre et sombre dans la culpabilité.", "image_url": "https://picsum.photos/seed/crime-chatiment/300/450", "annee": 1866, "auteur": "Fiodor Dostoïevski", "nombre_pages": 672},
+    {"titre": "Cent ans de solitude", "categorie": "Littérature", "description": "Sept générations de la famille Buendía dans le village imaginaire de Macondo.", "image_url": "https://picsum.photos/seed/cent-ans-solitude/300/450", "annee": 1967, "auteur": "Gabriel García Márquez", "nombre_pages": 464},
+
+    # --- BD ---
+    {"titre": "Astérix le Gaulois", "categorie": "BD", "description": "Un village gaulois résiste encore et toujours à l'envahisseur romain.", "image_url": "https://picsum.photos/seed/asterix/300/450", "annee": 1961, "auteur": "René Goscinny & Albert Uderzo", "nombre_pages": 48},
+    {"titre": "Tintin — Le Secret de la Licorne", "categorie": "BD", "description": "Tintin et Haddock partent sur les traces d'un trésor de pirate.", "image_url": "https://picsum.photos/seed/tintin-licorne/300/450", "annee": 1943, "auteur": "Hergé", "nombre_pages": 62},
+    {"titre": "Lucky Luke — Le Juge", "categorie": "BD", "description": "Le cow-boy solitaire affronte la justice expéditive de l'Ouest américain.", "image_url": "https://picsum.photos/seed/lucky-luke-juge/300/450", "annee": 1959, "auteur": "Morris & René Goscinny", "nombre_pages": 48},
+    {"titre": "Gaston Lagaffe — Gags de bureau", "categorie": "BD", "description": "Les catastrophes quotidiennes d'un employé de bureau irrécupérable.", "image_url": "https://picsum.photos/seed/gaston/300/450", "annee": 1965, "auteur": "André Franquin", "nombre_pages": 48},
+    {"titre": "Spirou et Fantasio — La Corne de rhinocéros", "categorie": "BD", "description": "Spirou et Fantasio enquêtent sur un étrange trafic en pleine jungle.", "image_url": "https://picsum.photos/seed/spirou/300/450", "annee": 1955, "auteur": "André Franquin", "nombre_pages": 62},
+    {"titre": "Le Chat du rabbin", "categorie": "BD", "description": "Un chat qui parle bouscule la vie d'une famille juive à Alger.", "image_url": "https://picsum.photos/seed/chat-rabbin/300/450", "annee": 2002, "auteur": "Joann Sfar", "nombre_pages": 48},
+    {"titre": "Blacksad — Quelque part entre les ombres", "categorie": "BD", "description": "Un détective privé félin enquête dans une Amérique noire et animale.", "image_url": "https://picsum.photos/seed/blacksad/300/450", "annee": 2000, "auteur": "Juan Díaz Canales & Juanjo Guarnido", "nombre_pages": 56},
+    {"titre": "Largo Winch — L'Héritier", "categorie": "BD", "description": "Un jeune héritier doit défendre son empire financier contre ses rivaux.", "image_url": "https://picsum.photos/seed/largo-winch/300/450", "annee": 1990, "auteur": "Jean Van Hamme & Philippe Francq", "nombre_pages": 48},
+    {"titre": "XIII — Le Jour du soleil noir", "categorie": "BD", "description": "Un homme amnésique tente de reconstituer son passé et son identité.", "image_url": "https://picsum.photos/seed/xiii/300/450", "annee": 1984, "auteur": "Jean Van Hamme & William Vance", "nombre_pages": 48},
+    {"titre": "Titeuf — Dieu, le sexe et les bretelles", "categorie": "BD", "description": "Les questions existentielles d'un enfant de la cour de récré.", "image_url": "https://picsum.photos/seed/titeuf/300/450", "annee": 1993, "auteur": "Zep", "nombre_pages": 46},
+    {"titre": "Boule et Bill — Un chien pas comme les autres", "categorie": "BD", "description": "Les aventures tendres d'un garçon et de son cocker facétieux.", "image_url": "https://picsum.photos/seed/boule-bill/300/450", "annee": 1959, "auteur": "Jean Roba", "nombre_pages": 48},
+    {"titre": "Les Schtroumpfs noirs", "categorie": "BD", "description": "Une mystérieuse maladie transforme les Schtroumpfs en créatures agressives.", "image_url": "https://picsum.photos/seed/schtroumpfs/300/450", "annee": 1963, "auteur": "Peyo", "nombre_pages": 48},
+    {"titre": "Corto Maltese — La Ballade de la mer salée", "categorie": "BD", "description": "Le marin aventurier navigue entre pirates et trésors dans le Pacifique.", "image_url": "https://picsum.photos/seed/corto-maltese/300/450", "annee": 1967, "auteur": "Hugo Pratt", "nombre_pages": 163},
+    {"titre": "Persepolis", "categorie": "BD", "description": "Le récit autobiographique d'une enfance en Iran pendant la révolution islamique.", "image_url": "https://picsum.photos/seed/persepolis/300/450", "annee": 2000, "auteur": "Marjane Satrapi", "nombre_pages": 160},
+    {"titre": "Aya de Yopougon", "categorie": "BD", "description": "La vie quotidienne et les amours d'une jeune femme à Abidjan.", "image_url": "https://picsum.photos/seed/aya-yopougon/300/450", "annee": 2005, "auteur": "Marguerite Abouet & Clément Oubrerie", "nombre_pages": 106},
+    {"titre": "Le Petit Nicolas", "categorie": "BD", "description": "Le regard candide d'un écolier sur les adultes et ses copains de classe.", "image_url": "https://picsum.photos/seed/petit-nicolas/300/450", "annee": 1959, "auteur": "René Goscinny & Sempé", "nombre_pages": 158},
+    {"titre": "Thorgal — La Magicienne trahie", "categorie": "BD", "description": "Un enfant viking d'origine extraterrestre affronte les dieux nordiques.", "image_url": "https://picsum.photos/seed/thorgal/300/450", "annee": 1980, "auteur": "Jean Van Hamme & Grzegorz Rosiński", "nombre_pages": 48},
+    {"titre": "Les Tuniques Bleues — Les Bleus en cavale", "categorie": "BD", "description": "Deux soldats nordistes maladroits traversent la guerre de Sécession.", "image_url": "https://picsum.photos/seed/tuniques-bleues/300/450", "annee": 1968, "auteur": "Raoul Cauvin & Louis Salvérius", "nombre_pages": 48},
+    {"titre": "Naufragés d'Ythaq", "categorie": "BD", "description": "Des naufragés de l'espace échouent sur une planète inconnue et hostile.", "image_url": "https://picsum.photos/seed/ythaq/300/450", "annee": 2004, "auteur": "Christophe Arleston & Adrien Floch", "nombre_pages": 48},
+    {"titre": "L'Arabe du futur", "categorie": "BD", "description": "Le récit autobiographique d'une enfance entre Libye, Syrie et France.", "image_url": "https://picsum.photos/seed/arabe-futur/300/450", "annee": 2014, "auteur": "Riad Sattouf", "nombre_pages": 160},
+
+    # --- Manga ---
+    {"titre": "JoJo's Bizarre Adventure T1 — Phantom Blood", "categorie": "Manga", "description": "Jonathan Joestar affronte son frère adoptif devenu vampire immortel.", "image_url": "https://picsum.photos/seed/jojo-t1/300/450", "annee": 1987, "auteur": "Hirohiko Araki", "nombre_pages": 200},
+    {"titre": "JoJo's Bizarre Adventure T5 — Stardust Crusaders", "categorie": "Manga", "description": "Jotaro Kujo traverse le monde pour vaincre DIO grâce à son Stand.", "image_url": "https://picsum.photos/seed/jojo-t5/300/450", "annee": 1989, "auteur": "Hirohiko Araki", "nombre_pages": 200},
+    {"titre": "JoJo's Bizarre Adventure T12 — Diamond is Unbreakable", "categorie": "Manga", "description": "Josuke Higashikata enquête sur les mystères de la ville de Morioh.", "image_url": "https://picsum.photos/seed/jojo-t12/300/450", "annee": 1992, "auteur": "Hirohiko Araki", "nombre_pages": 200},
+    {"titre": "JoJo's Bizarre Adventure T25 — Vento Aureo", "categorie": "Manga", "description": "Giorno Giovanna gravit les échelons de la mafia italienne pour la purifier.", "image_url": "https://picsum.photos/seed/jojo-t25/300/450", "annee": 1995, "auteur": "Hirohiko Araki", "nombre_pages": 200},
+    {"titre": "One Piece T1 — À l'aube d'une grande aventure", "categorie": "Manga", "description": "Luffy quitte son village pour devenir le roi des pirates.", "image_url": "https://picsum.photos/seed/one-piece-t1/300/450", "annee": 1997, "auteur": "Eiichiro Oda", "nombre_pages": 216},
+    {"titre": "Naruto T1 — Naruto Uzumaki", "categorie": "Manga", "description": "Un jeune ninja rejeté rêve de devenir le chef de son village.", "image_url": "https://picsum.photos/seed/naruto-t1/300/450", "annee": 1999, "auteur": "Masashi Kishimoto", "nombre_pages": 195},
+    {"titre": "Death Note T1 — Boredom", "categorie": "Manga", "description": "Light Yagami trouve un carnet qui tue quiconque y est inscrit.", "image_url": "https://picsum.photos/seed/death-note-t1/300/450", "annee": 2003, "auteur": "Tsugumi Ohba & Takeshi Obata", "nombre_pages": 200},
+    {"titre": "L'Attaque des Titans T1", "categorie": "Manga", "description": "L'humanité survit retranchée derrière des murs contre des titans géants.", "image_url": "https://picsum.photos/seed/attaque-titans-t1/300/450", "annee": 2009, "auteur": "Hajime Isayama", "nombre_pages": 192},
+    {"titre": "Fullmetal Alchemist T1", "categorie": "Manga", "description": "Deux frères alchimistes cherchent à réparer leurs corps après un échange raté.", "image_url": "https://picsum.photos/seed/fma-t1/300/450", "annee": 2001, "auteur": "Hiromu Arakawa", "nombre_pages": 192},
+    {"titre": "Dragon Ball T1", "categorie": "Manga", "description": "Le jeune Son Goku part à la recherche des sept boules de cristal.", "image_url": "https://picsum.photos/seed/dragon-ball-t1/300/450", "annee": 1984, "auteur": "Akira Toriyama", "nombre_pages": 190},
+    {"titre": "Berserk T1", "categorie": "Manga", "description": "Guts, mercenaire solitaire, traque les démons dans un monde médiéval sombre.", "image_url": "https://picsum.photos/seed/berserk-t1/300/450", "annee": 1989, "auteur": "Kentaro Miura", "nombre_pages": 224},
+    {"titre": "My Hero Academia T1", "categorie": "Manga", "description": "Un adolescent sans pouvoir rêve de devenir un héros dans un monde de super-héros.", "image_url": "https://picsum.photos/seed/mha-t1/300/450", "annee": 2014, "auteur": "Kohei Horikoshi", "nombre_pages": 200},
+    {"titre": "Demon Slayer T1", "categorie": "Manga", "description": "Tanjiro part venger sa famille massacrée par des démons et sauver sa sœur.", "image_url": "https://picsum.photos/seed/demon-slayer-t1/300/450", "annee": 2016, "auteur": "Koyoharu Gotouge", "nombre_pages": 192},
+    {"titre": "Vagabond T1", "categorie": "Manga", "description": "Le parcours du légendaire épéiste Miyamoto Musashi vers la maîtrise du sabre.", "image_url": "https://picsum.photos/seed/vagabond-t1/300/450", "annee": 1998, "auteur": "Takehiko Inoue", "nombre_pages": 224},
+    {"titre": "Vinland Saga T1", "categorie": "Manga", "description": "Thorfinn grandit parmi les Vikings avec la vengeance pour seul but.", "image_url": "https://picsum.photos/seed/vinland-saga-t1/300/450", "annee": 2005, "auteur": "Makoto Yukimura", "nombre_pages": 250},
+    {"titre": "Bleach T1", "categorie": "Manga", "description": "Ichigo Kurosaki hérite des pouvoirs d'un shinigami pour combattre les esprits maléfiques.", "image_url": "https://picsum.photos/seed/bleach-t1/300/450", "annee": 2001, "auteur": "Tite Kubo", "nombre_pages": 192},
+    {"titre": "Hunter x Hunter T1", "categorie": "Manga", "description": "Gon part à la recherche de son père en devenant Hunter.", "image_url": "https://picsum.photos/seed/hunter-hunter-t1/300/450", "annee": 1998, "auteur": "Yoshihiro Togashi", "nombre_pages": 200},
+    {"titre": "Slam Dunk T1", "categorie": "Manga", "description": "Un cancre intègre l'équipe de basket du lycée pour impressionner une fille.", "image_url": "https://picsum.photos/seed/slam-dunk-t1/300/450", "annee": 1990, "auteur": "Takehiko Inoue", "nombre_pages": 224},
+    {"titre": "Monster T1", "categorie": "Manga", "description": "Un chirurgien voit sa vie basculer après avoir sauvé un enfant devenu tueur.", "image_url": "https://picsum.photos/seed/monster-t1/300/450", "annee": 1994, "auteur": "Naoki Urasawa", "nombre_pages": 200},
+    {"titre": "Chainsaw Man T1", "categorie": "Manga", "description": "Denji fusionne avec son chien-démon tronçonneuse pour survivre à ses dettes.", "image_url": "https://picsum.photos/seed/chainsaw-man-t1/300/450", "annee": 2018, "auteur": "Tatsuki Fujimoto", "nombre_pages": 192},
+
+    # --- Guide ---
+    {"titre": "Le Guide du Routard — Japon", "categorie": "Guide", "description": "Adresses, itinéraires et conseils pratiques pour voyager au Japon.", "image_url": "https://picsum.photos/seed/routard-japon/300/450", "annee": 2023, "auteur": "Collectif Hachette", "nombre_pages": 480},
+    {"titre": "Lonely Planet — Italie", "categorie": "Guide", "description": "Guide de voyage complet pour explorer l'Italie région par région.", "image_url": "https://picsum.photos/seed/lonely-planet-italie/300/450", "annee": 2022, "auteur": "Collectif Lonely Planet", "nombre_pages": 600},
+    {"titre": "Le Larousse de la cuisine", "categorie": "Guide", "description": "L'encyclopédie de référence des techniques et recettes de cuisine.", "image_url": "https://picsum.photos/seed/larousse-cuisine/300/450", "annee": 2019, "auteur": "Collectif Larousse", "nombre_pages": 1200},
+    {"titre": "Cuisine facile pour débutants", "categorie": "Guide", "description": "Des recettes simples et expliquées pas à pas pour bien débuter.", "image_url": "https://picsum.photos/seed/cuisine-debutants/300/450", "annee": 2020, "auteur": "Marie Duval", "nombre_pages": 224},
+    {"titre": "Le Guide du zéro déchet", "categorie": "Guide", "description": "Comment réduire drastiquement ses déchets au quotidien, étape par étape.", "image_url": "https://picsum.photos/seed/zero-dechet/300/450", "annee": 2013, "auteur": "Béa Johnson", "nombre_pages": 320},
+    {"titre": "L'Art de la simplicité", "categorie": "Guide", "description": "Des principes pour désencombrer sa vie matérielle et mentale.", "image_url": "https://picsum.photos/seed/art-simplicite/300/450", "annee": 2005, "auteur": "Dominique Loreau", "nombre_pages": 192},
+    {"titre": "Clean Code", "categorie": "Guide", "description": "Les bonnes pratiques pour écrire du code lisible et maintenable.", "image_url": "https://picsum.photos/seed/clean-code/300/450", "annee": 2008, "auteur": "Robert C. Martin", "nombre_pages": 464},
+    {"titre": "Le Guide complet du jardinage bio", "categorie": "Guide", "description": "Techniques et calendrier pour un potager bio toute l'année.", "image_url": "https://picsum.photos/seed/jardinage-bio/300/450", "annee": 2015, "auteur": "Denis Pépin", "nombre_pages": 256},
+    {"titre": "Un rien peut tout changer (Atomic Habits)", "categorie": "Guide", "description": "Une méthode pour construire de bonnes habitudes par petits changements.", "image_url": "https://picsum.photos/seed/atomic-habits/300/450", "annee": 2018, "auteur": "James Clear", "nombre_pages": 320},
+    {"titre": "Le Guide de la randonnée en France", "categorie": "Guide", "description": "Itinéraires balisés et conseils pratiques pour randonner en France.", "image_url": "https://picsum.photos/seed/randonnee-france/300/450", "annee": 2021, "auteur": "FFRandonnée", "nombre_pages": 288},
+    {"titre": "Guide pratique de la photographie", "categorie": "Guide", "description": "Les bases techniques et artistiques pour progresser en photo.", "image_url": "https://picsum.photos/seed/guide-photo/300/450", "annee": 2016, "auteur": "Michael Freeman", "nombre_pages": 224},
+    {"titre": "Le Guide Michelin France", "categorie": "Guide", "description": "La sélection annuelle des meilleures tables et hôtels de France.", "image_url": "https://picsum.photos/seed/guide-michelin/300/450", "annee": 2024, "auteur": "Collectif Michelin", "nombre_pages": 1400},
+    {"titre": "Comment parler à n'importe qui", "categorie": "Guide", "description": "Des techniques concrètes pour gagner en aisance sociale et relationnelle.", "image_url": "https://picsum.photos/seed/parler-a-nimporte-qui/300/450", "annee": 1999, "auteur": "Leil Lowndes", "nombre_pages": 320},
+    {"titre": "Le Guide du yoga pour débutants", "categorie": "Guide", "description": "Postures et respirations expliquées pour commencer le yoga sereinement.", "image_url": "https://picsum.photos/seed/yoga-debutants/300/450", "annee": 2018, "auteur": "Sylvie Bernier", "nombre_pages": 176},
+    {"titre": "Guide de survie en pleine nature", "categorie": "Guide", "description": "Les techniques essentielles pour s'orienter et survivre en milieu sauvage.", "image_url": "https://picsum.photos/seed/survie-nature/300/450", "annee": 2011, "auteur": "Bear Grylls", "nombre_pages": 224},
+    {"titre": "Le Guide complet des vins de France", "categorie": "Guide", "description": "Un tour des régions viticoles françaises et de leurs appellations.", "image_url": "https://picsum.photos/seed/vins-france/300/450", "annee": 2023, "auteur": "Hachette Vins", "nombre_pages": 800},
+    {"titre": "Apprendre Python en 21 jours", "categorie": "Guide", "description": "Une progression pas à pas pour apprendre la programmation en Python.", "image_url": "https://picsum.photos/seed/python-21-jours/300/450", "annee": 2020, "auteur": "Yannick Loiseau", "nombre_pages": 400},
+    {"titre": "Le Guide du bricolage pour tous", "categorie": "Guide", "description": "Les techniques de base pour réaliser soi-même petits travaux et réparations.", "image_url": "https://picsum.photos/seed/bricolage/300/450", "annee": 2019, "auteur": "Collectif Marabout", "nombre_pages": 288},
+    {"titre": "Guide pratique du premier appartement", "categorie": "Guide", "description": "Conseils concrets pour s'installer et bien gérer son premier logement.", "image_url": "https://picsum.photos/seed/premier-appartement/300/450", "annee": 2021, "auteur": "Elodie Cabrera", "nombre_pages": 192},
+    {"titre": "Manuel de survie des développeurs", "categorie": "Guide", "description": "Conseils de carrière et de management pour les développeurs logiciels.", "image_url": "https://picsum.photos/seed/survie-developpeurs/300/450", "annee": 2007, "auteur": "Michael Lopp", "nombre_pages": 240},
+]
+
+
+async def seed() -> None:
+    await init_db()
+
+    async with async_session_maker() as session:
+        added = 0
+        for data in BOOKS:
+            result = await session.exec(select(Book).where(Book.titre == data["titre"]))
+            if result.first() is not None:
+                continue  # déjà en base, on ne le recrée pas
+
+            session.add(Book(**data))
+            added += 1
+
+        await session.commit()
+        print(f"{added} livre(s) ajouté(s) — {len(BOOKS) - added} déjà présent(s).")
+
+
+if __name__ == "__main__":
+    asyncio.run(seed())
