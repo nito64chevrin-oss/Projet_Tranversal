@@ -7,7 +7,7 @@ from sqlmodel import Field, SQLModel
 class Book(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     titre: str = Field(min_length=3, max_length=100)
-    categorie: str = Field(min_length=3, max_length=50)
+    categorie: str = Field(min_length=2, max_length=50)
     description: str
     image_url: str
     annee: int = Field(gt=0)

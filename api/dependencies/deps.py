@@ -1,19 +1,28 @@
-from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from typing import Optional
+
+from fastapi import Depends, HTTPException, Query, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from core.security import decode_access_token
 from db.database import get_session
 from models.model import User
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+bearer_scheme = HTTPBearer(auto_error=False)
 
 
 async def get_current_user(
-    token: str = Depends(oauth2_scheme),
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
     session: AsyncSession = Depends(get_session),
 ) -> User:
-    payload = decode_access_token(token)
+    if credentials is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token manquant",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+
+    payload = decode_access_token(credentials.credentials)
 
     user_id = payload.get("sub")
     if user_id is None:
@@ -24,3 +33,14 @@ async def get_current_user(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Utilisateur introuvable")
 
     return user
+
+
+class Pagination:
+    def __init__(
+        self,
+        page: int = Query(default=1, ge=1),
+        limit: int = Query(default=12, ge=1, le=50),
+    ) -> None:
+        self.page = page
+        self.limit = limit
+        self.offset = (page - 1) * limit

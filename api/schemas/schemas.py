@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, EmailStr, Field
 
 class BookBase(BaseModel):
     titre: str = Field(min_length=3, max_length=100)
-    categorie: str = Field(min_length=3, max_length=50)
+    categorie: str = Field(min_length=2, max_length=50)
     description: str
     image_url: str
     annee: int = Field(gt=0)
@@ -24,9 +24,26 @@ class BookResponse(BookBase):
     model_config = ConfigDict(from_attributes=True)
 
 
+class BookListResponse(BaseModel):
+    total: int
+    page: int
+    limit: int
+    results: list[BookResponse]
+
+
 class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(min_length=8, max_length=100)
+
+
+class UserLogin(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    token_type: str
 
 
 class UserResponse(BaseModel):
@@ -67,3 +84,12 @@ class StatsResponse(BaseModel):
     total: int
     par_statut: dict[str, int]
     note_moyenne: Optional[float]
+
+
+class ErrorDetail(BaseModel):
+    code: int
+    message: str
+
+
+class ErrorResponse(BaseModel):
+    erreur: ErrorDetail
