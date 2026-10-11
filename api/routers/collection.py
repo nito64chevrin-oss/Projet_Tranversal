@@ -54,7 +54,7 @@ async def list_collection(
         statement = statement.where(CollectionEntry.statut == statut)
 
     if tri == "note":
-        statement = statement.order_by(CollectionEntry.note.desc())
+        statement = statement.order_by(CollectionEntry.note.desc().nulls_last())
     else:
         statement = statement.order_by(CollectionEntry.date_ajout.desc())
 

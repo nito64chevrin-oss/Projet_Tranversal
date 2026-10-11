@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { apiGet, estApiError } from "../services/http";
 import { useAuth } from "../context/AuthContext";
 import { useCollection } from "../context/CollectionContext";
+import { SimilarBooks } from "../components/SimilarBooks";
 import type { Item } from "../types/api";
 
 export function ItemDetail() {
@@ -45,28 +46,32 @@ export function ItemDetail() {
       {erreur && <p className="form-error">{erreur}</p>}
 
       {!chargement && !erreur && item && (
-        <div className="item-detail">
-          <span className="book-tag">{item.categorie}</span>
-          <h1>{item.titre}</h1>
-          <p className="book-author">
-            {item.auteur} — {item.annee}
-          </p>
-          <p>{item.nombre_pages} pages</p>
-          <p>{item.description}</p>
-
-          {erreurAjout && <p className="form-error">{erreurAjout}</p>}
-
-          {isAuthenticated ? (
-            <button type="button" onClick={handleAjouter} disabled={ajout}>
-              {ajout ? "Ajout..." : "Ajouter à ma collection"}
-            </button>
-          ) : (
-            <p>
-              <Link to="/login">Connecte-toi</Link> pour ajouter ce livre à ta collection.
+        <div className="item-detail" data-categorie={item.categorie}>
+          <div className="item-info">
+            <span className="book-tag">{item.categorie}</span>
+            <h1>{item.titre}</h1>
+            <p className="book-author">
+              {item.auteur} — {item.annee}
             </p>
-          )}
+            <p>{item.nombre_pages} pages</p>
+            <p>{item.description}</p>
+
+            {erreurAjout && <p className="form-error">{erreurAjout}</p>}
+
+            {isAuthenticated ? (
+              <button type="button" onClick={handleAjouter} disabled={ajout}>
+                {ajout ? "Ajout..." : "Ajouter à ma collection"}
+              </button>
+            ) : (
+              <p>
+                <Link to="/login">Connecte-toi</Link> pour ajouter ce livre à ta collection.
+              </p>
+            )}
+          </div>
         </div>
       )}
+
+      {!chargement && !erreur && item && <SimilarBooks itemId={item.id} />}
     </div>
   );
 }

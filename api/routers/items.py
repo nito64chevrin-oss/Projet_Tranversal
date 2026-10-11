@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import func, select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from core.knn import k_plus_proches_voisins
 from db.database import get_session
 from dependencies.deps import Pagination
 from models.model import Book
@@ -51,3 +52,24 @@ async def get_item(item_id: int, session: AsyncSession = Depends(get_session)) -
     if book is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item introuvable")
     return book
+
+
+@router.get(
+    "/{item_id}/similaires",
+    response_model=list[BookResponse],
+    summary="Livres similaires (k plus proches voisins)",
+    responses={404: {"model": ErrorResponse, "description": "Item introuvable"}},
+)
+async def get_similar_items(
+    item_id: int,
+    k: int = Query(default=5, ge=1, le=20),
+    session: AsyncSession = Depends(get_session),
+) -> list[Book]:
+    book = await session.get(Book, item_id)
+    if book is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item introuvable")
+
+    result = await session.exec(select(Book))
+    tous_les_livres = list(result.all())
+
+    return k_plus_proches_voisins(book, tous_les_livres, k)

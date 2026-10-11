@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from typing import Optional
 
+from sqlalchemy import DateTime
 from sqlmodel import Field, SQLModel
 
 
@@ -26,6 +27,9 @@ class CollectionEntry(SQLModel, table=True):
     statut: str
     note: Optional[int] = None
     commentaire: Optional[str] = None
-    date_ajout: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    date_ajout: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_type=DateTime(timezone=True),
+    )
     user_id: int = Field(foreign_key="user.id")
     item_id: int = Field(foreign_key="book.id")

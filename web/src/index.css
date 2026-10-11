@@ -6,10 +6,14 @@
   --blue-50: #f4f8ff;
   --white: #ffffff;
   --yellow: #f5c518;
+  --red: #d33;
+  --red-50: #fdecec;
   --text: #14213d;
   --text-muted: #5b6b85;
   --border: #dbe6f7;
   --radius: 12px;
+  --shadow: 0 1px 3px rgba(11, 47, 94, 0.08);
+  --shadow-hover: 0 8px 20px rgba(11, 47, 94, 0.14);
 }
 
 * {
@@ -22,6 +26,7 @@ body {
   font-family: "Segoe UI", Arial, sans-serif;
   background: var(--blue-50);
   color: var(--text);
+  line-height: 1.5;
 }
 
 a {
@@ -29,13 +34,43 @@ a {
   color: inherit;
 }
 
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  transition: background 0.15s, border-color 0.15s, transform 0.15s;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+input:focus,
+select:focus,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+}
+
+/* ---------- En-tête ---------- */
+
 .app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   display: flex;
   align-items: center;
   justify-content: space-between;
   background: var(--white);
   border-bottom: 1px solid var(--border);
-  padding: 16px 24px;
+  box-shadow: var(--shadow);
+  padding: 14px 24px;
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -49,34 +84,86 @@ a {
 .app-header nav {
   display: flex;
   align-items: center;
-  gap: 16px;
+  flex-wrap: wrap;
+  gap: 6px;
   font-size: 14px;
+}
+
+.app-header nav a {
+  padding: 6px 12px;
+  border-radius: 999px;
+  color: var(--text-muted);
+  transition: background 0.15s, color 0.15s;
+}
+
+.app-header nav a:hover {
+  color: var(--blue-700);
+}
+
+.app-header nav a.active {
+  background: var(--blue-100);
+  color: var(--blue-700);
+  font-weight: 600;
 }
 
 .app-header button {
   background: var(--yellow);
   border: none;
-  padding: 8px 16px;
+  padding: 7px 16px;
   border-radius: 999px;
   font-weight: 700;
   cursor: pointer;
 }
 
+.app-header button:hover {
+  background: #e6b600;
+}
+
 .user-email {
   color: var(--text-muted);
   font-size: 13px;
+  padding: 0 6px;
 }
+
+/* ---------- Mise en page ---------- */
 
 .page {
   max-width: 1100px;
   margin: 0 auto;
-  padding: 24px 20px 60px;
+  padding: 28px 20px 60px;
 }
 
 .page h1 {
   color: var(--blue-900);
-  margin-bottom: 20px;
+  margin-bottom: 24px;
+  line-height: 1.2;
 }
+
+.page > h1::after {
+  content: "";
+  display: block;
+  width: 48px;
+  height: 4px;
+  margin-top: 8px;
+  border-radius: 2px;
+  background: var(--yellow);
+}
+
+.page > p:not(.form-error) {
+  color: var(--text-muted);
+  text-align: center;
+  padding: 40px 0;
+}
+
+.form-error {
+  color: var(--red);
+  background: var(--red-50);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+}
+
+/* ---------- Filtres et pagination ---------- */
 
 .filters {
   display: flex;
@@ -94,32 +181,103 @@ a {
   background: var(--white);
 }
 
+.filters input {
+  flex: 1;
+  min-width: 200px;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  margin-top: 32px;
+  font-size: 14px;
+  color: var(--text-muted);
+}
+
+.pagination button {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: var(--blue-500);
+  color: var(--blue-700);
+}
+
+/* ---------- Couleur par catégorie ---------- */
+
+[data-categorie] {
+  --accent: var(--blue-700);
+  --accent-bg: var(--blue-100);
+}
+
+[data-categorie="Littérature"] {
+  --accent: #1d4ed8;
+  --accent-bg: #e7f0fe;
+}
+
+[data-categorie="BD"] {
+  --accent: #c2410c;
+  --accent-bg: #ffedd5;
+}
+
+[data-categorie="Manga"] {
+  --accent: #be185d;
+  --accent-bg: #fce7f3;
+}
+
+[data-categorie="Guide"] {
+  --accent: #047857;
+  --accent-bg: #d1fae5;
+}
+
+/* ---------- Cartes livres ---------- */
+
 .book-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 20px;
 }
 
 .book-card {
-  display: block;
+  display: flex;
+  flex-direction: column;
   background: var(--white);
   border: 1px solid var(--border);
+  border-top: 5px solid var(--accent);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
   overflow: hidden;
-  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+
+.book-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-hover);
+  border-color: var(--accent);
+}
+
+.book-card:hover .book-title {
+  color: var(--accent);
 }
 
 .book-info {
-  padding: 12px 14px;
+  padding: 14px 16px 16px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  height: 100%;
 }
 
 .book-tag {
   align-self: flex-start;
-  background: var(--blue-100);
-  color: var(--blue-700);
+  background: var(--accent-bg, var(--blue-100));
+  color: var(--accent, var(--blue-700));
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -128,8 +286,10 @@ a {
 }
 
 .book-title {
-  font-size: 14px;
+  font-size: 15px;
   font-weight: 700;
+  line-height: 1.3;
+  transition: color 0.15s;
 }
 
 .book-author {
@@ -137,13 +297,77 @@ a {
   color: var(--text-muted);
 }
 
+.book-meta {
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px dashed var(--border);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ---------- Fiche détail ---------- */
+
+.item-detail {
+  max-width: 760px;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--accent);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 32px;
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.item-info h1 {
+  margin-bottom: 0;
+}
+
+.item-info button {
+  align-self: flex-start;
+  background: var(--accent);
+  color: var(--white);
+  border: none;
+  border-radius: 8px;
+  padding: 10px 20px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 10px;
+}
+
+.item-info button:hover:not(:disabled) {
+  background: var(--blue-900);
+}
+
+.item-info a {
+  color: var(--blue-700);
+  font-weight: 600;
+}
+
+.similar-books {
+  margin-top: 40px;
+}
+
+.similar-books h2 {
+  font-size: 20px;
+  color: var(--blue-900);
+  margin-bottom: 16px;
+}
+
+/* ---------- Formulaires de connexion ---------- */
+
 .auth-form {
-  max-width: 360px;
+  max-width: 380px;
   margin: 40px auto;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 24px;
+  box-shadow: var(--shadow);
+  padding: 28px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -173,29 +397,22 @@ a {
   cursor: pointer;
 }
 
-.form-error {
-  color: #d33;
-  font-size: 13px;
+.auth-form button:hover:not(:disabled) {
+  background: var(--blue-900);
 }
 
-.item-detail {
-  max-width: 600px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.auth-form p {
+  font-size: 14px;
+  text-align: center;
+  color: var(--text-muted);
 }
 
-.item-detail button {
-  align-self: flex-start;
-  background: var(--blue-700);
-  color: var(--white);
-  border: none;
-  border-radius: 8px;
-  padding: 10px 20px;
-  font-weight: 700;
-  cursor: pointer;
-  margin-top: 10px;
+.auth-form a {
+  color: var(--blue-700);
+  font-weight: 600;
 }
+
+/* ---------- Collection ---------- */
 
 .entry-list {
   display: flex;
@@ -207,10 +424,11 @@ a {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
   padding: 14px 18px;
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 12px 16px;
   flex-wrap: wrap;
 }
 
@@ -219,10 +437,22 @@ a {
   min-width: 180px;
 }
 
-.entry-card select {
+.entry-card select,
+.entry-card input {
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 6px 10px;
+  background: var(--white);
+}
+
+.entry-card input {
+  flex: 1;
+  min-width: 140px;
+}
+
+.entry-date {
+  font-size: 13px;
+  color: var(--text-muted);
 }
 
 .entry-card button {
@@ -234,6 +464,14 @@ a {
   cursor: pointer;
 }
 
+.entry-card button:hover {
+  background: var(--red-50);
+  border-color: var(--red);
+  color: var(--red);
+}
+
+/* ---------- Statistiques ---------- */
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
@@ -244,8 +482,19 @@ a {
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius);
+  box-shadow: var(--shadow);
   padding: 20px;
   text-align: center;
+}
+
+.stat-tile:first-child {
+  background: var(--blue-700);
+  border-color: var(--blue-700);
+}
+
+.stat-tile:first-child .stat-value,
+.stat-tile:first-child .stat-label {
+  color: var(--white);
 }
 
 .stat-value {
@@ -260,41 +509,33 @@ a {
   margin-top: 6px;
 }
 
+/* ---------- Mobile ---------- */
+
+@media (max-width: 640px) {
+  .app-header {
+    padding: 12px 16px;
+  }
+
+  .item-detail {
+    padding: 20px;
+  }
+
+  .entry-card button {
+    margin-left: 0;
+  }
+}
+
 @media (max-width: 400px) {
   .page {
     padding: 16px 12px 40px;
   }
-}
-.pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 16px;
-  margin-top: 24px;
-}
 
-.pagination button {
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 14px;
-  cursor: pointer;
-}
+  .book-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
 
-.pagination button:disabled {
-  opacity: 0.5;
-  cursor: default;
-}
-
-.entry-card input {
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 6px 10px;
-  flex: 1;
-  min-width: 140px;
-}
-
-.entry-date {
-  font-size: 13px;
-  color: var(--text-muted);
+  .filters input {
+    min-width: 100%;
+  }
 }

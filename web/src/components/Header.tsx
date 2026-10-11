@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, NavLink } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export function Header() {
@@ -10,9 +10,11 @@ export function Header() {
         Ma Collection
       </Link>
       <nav>
-        <Link to="/">Catalogue</Link>
-        {isAuthenticated && <Link to="/collection">Ma collection</Link>}
-        {isAuthenticated && <Link to="/stats">Statistiques</Link>}
+        <NavLink to="/" end>
+          Catalogue
+        </NavLink>
+        {isAuthenticated && <NavLink to="/collection">Ma collection</NavLink>}
+        {isAuthenticated && <NavLink to="/stats">Statistiques</NavLink>}
         {isAuthenticated ? (
           <>
             <span className="user-email">{user?.email}</span>
@@ -22,8 +24,8 @@ export function Header() {
           </>
         ) : (
           <>
-            <Link to="/login">Connexion</Link>
-            <Link to="/register">Inscription</Link>
+            <NavLink to="/login">Connexion</NavLink>
+            <NavLink to="/register">Inscription</NavLink>
           </>
         )}
       </nav>
